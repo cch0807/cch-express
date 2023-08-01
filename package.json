@@ -1,4 +1,14 @@
 {
+  "name": "cch-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "nodemon ./server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "cch-lion",
+  "license": "ISC",
   "dependencies": {
     "express": "^4.18.2"
   }
