@@ -1,4 +1,8 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+import express from "express";
+import mysql from "mysql2";
+
+dotenv.config();
 
 const dbHost = process.env.DB_HOST;
 const dbUser = process.env.DB_USER;
@@ -8,17 +12,18 @@ const db = process.env.DB_DATABASE;
 
 const port = process.env.EXPRESS_PORT;
 
-const express = require("express");
 const app = express();
 
-const mysql = require("mysql2");
-const pool = mysql.createPool({
-    host: dbHost,
-    user: dbUser,
-    password: dbPassword,
-    port: dbPort,
-    database: db,
-});
+const mysql = mysql;
+const pool = mysql
+    .createPool({
+        host: dbHost,
+        user: dbUser,
+        password: dbPassword,
+        port: dbPort,
+        database: db,
+    })
+    .promise();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -133,12 +138,72 @@ app.delete("/user/:userId", (req, res) => {
 function getNotes() {
     pool.query(
         `SELECT BIN_TO_UUID(uuid, true) as uuid,title,contents,created from notes`,
-        function (err, rows, fileds) {
+        function (err, rows, fields) {
             console.log(rows);
         }
     );
 }
 
-getNotes();
+// getNotes();
+
+function getNote(uuid) {
+    pool.query(
+        `SELECT BIN_TO_UUID(uuid, true) as uuid, title, contents, created from notes where uuid=UUID_TO_BIN('${uuid}',1);`,
+        function (err, rows, fields) {
+            // console.log(...rows);
+            console.log(rows[0]);
+        }
+    );
+}
+
+getNote("320d11ee-b88b-f1f7-9e13-12fc6fb5ea29");
+
+function addNotes(title, contents) {
+    pool.query(
+        `INSERT INTO notes (title, contents) VALUES ('${title}','${contents}');`,
+        function (err, rows, fields) {
+            console.log(err);
+            console.log(rows);
+        }
+    );
+}
+
+// addNotes("Note2", "something");
+// getNotes();
+
+function updateNote(uuid, title, contents) {
+    pool.query(
+        `UPDATE notes SET title='${title}', contents='${contents}' WHERE uuid=UUID_TO_BIN('${uuid}',1);`,
+        function (err, rows, fields) {
+            console.log(rows);
+        }
+    );
+}
+
+// updateNote(
+//     "321611ee-14cb-7afb-9e13-12fc6fb5ea29",
+//     "change-Note2",
+//     "change-something"
+// );
+
+// getNotes();
+
+function deleteNote(uuid) {
+    pool.query(
+        `DELETE FROM notes WHERE uuid=UUID_TO_BIN('${uuid}',1)`,
+        function (err, rows, fields) {
+            console.log(rows);
+        }
+    );
+}
+
+// deleteNote("321611ee-14cb-7afb-9e13-12fc6fb5ea29");
+// getNotes();
 
 app.listen(port, "0.0.0.0");
+
+exports.getNotes = getNotes;
+exports.getNote = getNote;
+exports.addNotes = addNotes;
+exports.updateNote = updateNote;
+exports.deleteNote = deleteNote;
