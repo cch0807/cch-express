@@ -10,11 +10,8 @@ const dbPassword = process.env.DB_PASSWORD;
 const dbPort = process.env.DB_PORT;
 const db = process.env.DB_DATABASE;
 
-const port = process.env.EXPRESS_PORT;
-
 const app = express();
 
-const mysql = mysql;
 const pool = mysql
     .createPool({
         host: dbHost,
@@ -24,6 +21,7 @@ const pool = mysql
         database: db,
     })
     .promise();
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -135,49 +133,81 @@ app.delete("/user/:userId", (req, res) => {
 //     console.log(rows);
 // });
 
-function getNotes() {
-    pool.query(
-        `SELECT BIN_TO_UUID(uuid, true) as uuid,title,contents,created from notes`,
-        function (err, rows, fields) {
-            console.log(rows);
-        }
+// function getNotes() {
+//     pool.query(
+//         `SELECT BIN_TO_UUID(uuid, true) as uuid,title,contents,created from notes`,
+//         function (err, rows, fields) {
+//             console.log(rows);
+//         }
+//     );
+// }
+
+export async function getNotes() {
+    const [rows] = await pool.query(
+        `SELECT BIN_TO_UUID(uuid, true) as uuid, title, contents, created from notes;`
     );
+    // console.log(rows);
+    return rows;
 }
 
-// getNotes();
+// console.log(getNotes());
 
-function getNote(uuid) {
-    pool.query(
-        `SELECT BIN_TO_UUID(uuid, true) as uuid, title, contents, created from notes where uuid=UUID_TO_BIN('${uuid}',1);`,
-        function (err, rows, fields) {
-            // console.log(...rows);
-            console.log(rows[0]);
-        }
+// export function getNote(uuid) {
+//     pool.query(
+//         `SELECT BIN_TO_UUID(uuid, true) as uuid, title, contents, created from notes where uuid=UUID_TO_BIN('${uuid}',1);`,
+//         function (err, rows, fields) {
+//             // console.log(...rows);
+//             console.log(rows[0]);
+//         }
+//     );
+// }
+
+// getNote("320d11ee-b88b-f1f7-9e13-12fc6fb5ea29");
+
+export async function getNote(uuid) {
+    const [row] = await pool.query(
+        `SELECT BIN_TO_UUID(uuid, true) as uuid, title, contents, created from notes where uuid=UUID_TO_BIN('${uuid}',1);`
     );
+
+    return row;
 }
 
-getNote("320d11ee-b88b-f1f7-9e13-12fc6fb5ea29");
+// export function addNotes(title, contents) {
+//     pool.query(
+//         `INSERT INTO notes (title, contents) VALUES ('${title}','${contents}');`,
+//         function (err, rows, fields) {
+//             console.log(err);
+//             console.log(rows);
+//         }
+//     );
+// }
 
-function addNotes(title, contents) {
-    pool.query(
-        `INSERT INTO notes (title, contents) VALUES ('${title}','${contents}');`,
-        function (err, rows, fields) {
-            console.log(err);
-            console.log(rows);
-        }
+export async function addNotes(title, contents) {
+    const [rows] = await pool.query(
+        `INSERT INTO notes (title, contents) VALUES ('${title}', '${contents}');`
     );
+
+    return rows;
 }
 
 // addNotes("Note2", "something");
 // getNotes();
 
-function updateNote(uuid, title, contents) {
-    pool.query(
-        `UPDATE notes SET title='${title}', contents='${contents}' WHERE uuid=UUID_TO_BIN('${uuid}',1);`,
-        function (err, rows, fields) {
-            console.log(rows);
-        }
+// export function updateNote(uuid, title, contents) {
+//     pool.query(
+//         `UPDATE notes SET title='${title}', contents='${contents}' WHERE uuid=UUID_TO_BIN('${uuid}',1);`,
+//         function (err, rows, fields) {
+//             console.log(rows);
+//         }
+//     );
+// }
+
+export async function updateNote(uuid, title, contents) {
+    const [rows] = await pool.query(
+        `UPDATE notes SET title='${title}', contents='${contents}' WHERE uuid=UUID_TO_BIN('${uuid}', 1);`
     );
+
+    return rows;
 }
 
 // updateNote(
@@ -188,22 +218,23 @@ function updateNote(uuid, title, contents) {
 
 // getNotes();
 
-function deleteNote(uuid) {
-    pool.query(
-        `DELETE FROM notes WHERE uuid=UUID_TO_BIN('${uuid}',1)`,
-        function (err, rows, fields) {
-            console.log(rows);
-        }
+// export function deleteNote(uuid) {
+//     pool.query(
+//         `DELETE FROM notes WHERE uuid=UUID_TO_BIN('${uuid}',1)`,
+//         function (err, rows, fields) {
+//             console.log(rows);
+//         }
+//     );
+// }
+
+export async function deleteNote(uuid) {
+    const [rows] = await pool.query(
+        `DELETE FROM notes WHERE uuid=UUID_TO_BIN('${uuid}',1)`
     );
+    return rows;
 }
 
 // deleteNote("321611ee-14cb-7afb-9e13-12fc6fb5ea29");
 // getNotes();
 
-app.listen(port, "0.0.0.0");
-
-exports.getNotes = getNotes;
-exports.getNote = getNote;
-exports.addNotes = addNotes;
-exports.updateNote = updateNote;
-exports.deleteNote = deleteNote;
+// app.listen(port, "0.0.0.0");
