@@ -7,7 +7,7 @@ import {
     addNotes,
     updateNote,
     deleteNote,
-} from "./database_exam.js";
+} from "./mysql_exam.js";
 
 dotenv.config();
 
